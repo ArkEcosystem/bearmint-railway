@@ -1,0 +1,46 @@
+version: '2.1'
+services:
+  postgres:
+    image: "postgres:alpine"
+    container_name: postgres-rails
+    restart: always
+    volumes:
+      - '~/.rails-data:/var/lib/postgresql/data'
+    networks:
+      - bearmint 
+    environment:
+     POSTGRES_PASSWORD: pass
+     POSTGRES_DB: rails
+     POSTGRES_USER: rails
+  rails:
+    build: 
+      context: ../
+      dockerfile: docker/Dockerfile
+    sysctls:
+      net.core.somaxconn: 65365
+    image: rails-test-api 
+    extra_hosts:
+      host.docker.internal: host-gateway
+    container_name: rails.test 
+    restart: always
+    ports:
+      - '8898:8898'
+    working_dir: /rails
+    networks:
+      - bearmint
+    volumes:
+      - rails:/rails
+    tty: true
+    links:
+     - postgres
+    depends_on:
+      - postgres
+networks:
+  bearmint:
+volumes:
+  postgres:
+  rails:
+    driver_opts:
+      type: none
+      device: $PWD/../
+      o: bind 
